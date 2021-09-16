@@ -2,10 +2,6 @@
 set -euo pipefail
 set -x
 
-#yum-config-manager --add-repo https://openresty.org/package/centos/openresty.repo
-#yum -y install gcc gcc-c++ patch wget git make sudo
-#yum -y install openresty-openssl111-devel openresty-pcre-devel openresty-zlib-devel
-
 export openssl_prefix=/opt/homebrew/Cellar/openresty-openssl111/1.1.1k_1
 export zlib_prefix=/opt/homebrew/Cellar/zlib/1.2.11
 export pcre_prefix=/opt/homebrew/Cellar/pcre/8.45
