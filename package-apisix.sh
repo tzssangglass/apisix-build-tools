@@ -11,11 +11,11 @@ then
 	dep_pcre="libpcre3"
 fi
 
-# Determine the min version of openresty or apisix-openresty
+# Determine the min version of openresty or apisix-base
 #	openresty >= 1.17.8.2
-#	apisix-openresty >= 1.19.3.2.0
+#	apisix-base >= 1.19.3.2.0
 or_version="1.17.8.2"
-if [ "$OPENRESTY" == "apisix-openresty" ]
+if [ "$OPENRESTY" == "apisix-base" ]
 then
 	or_version="1.19.3.2.0"
 fi
@@ -41,7 +41,9 @@ fpm -f -s dir -t "$PACKAGE_TYPE" \
 	-C /tmp/build/output/apisix \
 	-p /output \
 	--url 'http://apisix.apache.org/' \
-	--config-files usr/lib/systemd/system/apisix.service
+	--config-files usr/lib/systemd/system/apisix.service \
+	--config-files usr/local/apisix/conf/config.yaml \
+	--config-files usr/local/apisix/conf/config-default.yaml
 
 # Rename deb file with adding $DIST section
 if [ "$PACKAGE_TYPE" == "deb" ]

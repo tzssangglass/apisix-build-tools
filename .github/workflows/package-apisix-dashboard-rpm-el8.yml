@@ -1,20 +1,25 @@
-name: package apisix-dashabord rpm for el7
+name: package apisix-dashabord rpm for el8
 
 on:
   push:
     branches: [ master ]
     tags:
       - "v*"
+    paths-ignore:
+      - '*.md'
   pull_request:
     branches: [ master ]
+    paths-ignore:
+      - '*.md'
   schedule:
     - cron: '0 0 * * *'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     env:
-      DASHBOARD_VERSION: 2.7
+      DASHBOARD_VERSION: 2.8
     services:
       etcd:
         image: bitnami/etcd:3.4.0
@@ -36,17 +41,17 @@ jobs:
 
       - name: run apisix-dashboard packaging test
         run: |
-          make package type=rpm app=dashboard version=${DASHBOARD_VERSION} checkout=release/${DASHBOARD_VERSION} image_base=centos image_tag=7
+          make package type=rpm app=dashboard version=${DASHBOARD_VERSION} checkout=release/${DASHBOARD_VERSION} image_base=centos image_tag=8
 
-      - name: Run centos7 docker and mapping rpm into container
+      - name: Run centos8 docker and mapping rpm into container
         run: |
-          docker run -itd -v $PWD/output:/apisix-dashboard --name centos7Instance --net="host" docker.io/centos:7 /bin/bash
+          docker run -itd -v $PWD/output:/apisix-dashboard --name centos8Instance --net="host" docker.io/centos:8 /bin/bash
 
       - name: Install rpm package
         run: |
-          docker exec centos7Instance bash -c "yum install -y /apisix-dashboard/apisix-dashboard-${DASHBOARD_VERSION}-0.el7.x86_64.rpm"
-          docker logs centos7Instance
-          docker exec centos7Instance bash -c "cd /usr/local/apisix/dashboard/ && nohup ./manager-api &"
+          docker exec centos8Instance bash -c "yum install -y /apisix-dashboard/apisix-dashboard-${DASHBOARD_VERSION}-0.el8.x86_64.rpm"
+          docker logs centos8Instance
+          docker exec centos8Instance bash -c "cd /usr/local/apisix/dashboard/ && nohup ./manager-api &"
 
       - name: Run test cases
         run: |
@@ -56,3 +61,10 @@ jobs:
               exit 1
           fi
 
+      - name: Publish Artifact
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: apisix-dashboard-${{ env.DASHBOARD_VERSION }}-0.el8.x86_64.rpm
+          path: output/apisix-dashboard-${{ env.DASHBOARD_VERSION }}-0.el8.x86_64.rpm
+          retention-days: 5
+          if-no-files-found: error
