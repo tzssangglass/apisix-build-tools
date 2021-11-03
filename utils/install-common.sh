@@ -27,7 +27,7 @@ install_dependencies_rpm() {
 install_dependencies_deb() {
     # install basic dependencies
     DEBIAN_FRONTEND=noninteractive apt-get update
-    DEBIAN_FRONTEND=noninteractive apt-get install -y wget tar gcc automake autoconf libtool make curl git unzip libreadline-dev lsb-release
+    DEBIAN_FRONTEND=noninteractive apt-get install -y wget tar gcc automake autoconf libtool make curl git unzip libreadline-dev lsb-release gawk
 
     # install lua 5.1 for compatible with openresty 1.17.8.2
     install_lua
@@ -44,7 +44,7 @@ install_lua() {
 install_openresty_deb() {
     # install openresty and openssl111
     DEBIAN_FRONTEND=noninteractive apt-get update
-    DEBIAN_FRONTEND=noninteractive apt-get install -y libreadline-dev lsb-release libpcre3 libpcre3-dev libssl-dev perl build-essential
+    DEBIAN_FRONTEND=noninteractive apt-get install -y libreadline-dev lsb-release libpcre3 libpcre3-dev libldap2-dev libssl-dev perl build-essential
     DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends wget gnupg ca-certificates
     wget -O - https://openresty.org/package/pubkey.gpg | apt-key add -
     echo "deb http://openresty.org/package/ubuntu $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/openresty.list
@@ -55,7 +55,7 @@ install_openresty_deb() {
 install_openresty_rpm() {
     # install openresty and openssl111
     yum-config-manager --add-repo https://openresty.org/package/centos/openresty.repo
-    yum install -y openresty openresty-openssl111-devel pcre pcre-devel
+    yum install -y openresty openresty-openssl111-devel pcre pcre-devel openldap-devel
 }
 
 install_luarocks() {
@@ -78,7 +78,22 @@ install_etcd() {
     tar -zxvf etcd-"${RUNNING_ETCD_VERSION}"-linux-amd64.tar.gz
 }
 
+version_gt() { test "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1"; }
+
+is_newer_version() {
+    if [ "${checkout_v}" = "master" -o "${checkout_v:0:7}" = "release" ];then
+		return 0
+	fi
+	if [ "${checkout_v:0:1}" = "v" ];then
+		version_gt "${checkout_v:1}" "2.2"
+	else
+		version_gt "${checkout_v}" "2.2"
+	fi
+}
+
 install_apisix() {
+    # show awk version
+    awk --version
     mkdir -p /tmp/build/output/apisix/usr/bin/
     cd /apisix
     # remove useless code for build
@@ -92,7 +107,7 @@ install_apisix() {
     cp /tmp/build/output/apisix/usr/local/apisix/deps/lib64/luarocks/rocks-5.1/apisix/master-${iteration}/bin/apisix /tmp/build/output/apisix/usr/bin/ || true
     cp /tmp/build/output/apisix/usr/local/apisix/deps/lib/luarocks/rocks-5.1/apisix/master-${iteration}/bin/apisix /tmp/build/output/apisix/usr/bin/ || true
     # modify the apisix entry shell to be compatible with version 2.2 and 2.3
-    if [ "${checkout_v}" = "master" ] || [ "${checkout_v:0:1}" != "v" -a "${checkout_v}" \> "2.2" ] || [ "${checkout_v:0:1}" = "v" -a "${checkout_v:1}" \> "2.2" ]; then
+    if is_newer_version "${checkout_v}"; then
         echo 'use shell '
     else
         bin='#! /usr/local/openresty/luajit/bin/luajit\npackage.path = "/usr/local/apisix/?.lua;" .. package.path'
@@ -100,7 +115,7 @@ install_apisix() {
     fi
     cp -r /usr/local/apisix/* /tmp/build/output/apisix/usr/local/apisix/
     mv /tmp/build/output/apisix/usr/local/apisix/deps/share/lua/5.1/apisix /tmp/build/output/apisix/usr/local/apisix/
-    if [ "${checkout_v}" = "master" ] || [ "${checkout_v:0:1}" != "v" -a "${checkout_v}" \> "2.2" ] || [ "${checkout_v:0:1}" = "v" -a "${checkout_v:1}" \> "2.2" ]; then
+    if is_newer_version "${checkout_v}"; then
         bin='package.path = "/usr/local/apisix/?.lua;" .. package.path'
         sed -i "1s@.*@$bin@" /tmp/build/output/apisix/usr/local/apisix/apisix/cli/apisix.lua
     else
@@ -186,5 +201,11 @@ install_dashboard_dependencies_deb)
     ;;
 install_dashboard)
     install_dashboard
+    ;;
+install_lua)
+    install_lua
+    ;;
+install_luarocks)
+    install_luarocks
     ;;
 esac

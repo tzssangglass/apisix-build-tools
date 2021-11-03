@@ -5,16 +5,21 @@ on:
     branches: [master]
     tags:
       - 'v*'
+    paths-ignore:
+      - '*.md'
   pull_request:
     branches: [master]
+    paths-ignore:
+      - '*.md'
   schedule:
     - cron: '0 0 * * *'
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     env:
-      DASHBOARD_VERSION: 2.7
+      DASHBOARD_VERSION: 2.8
     services:
       etcd:
         image: bitnami/etcd:3.4.0
