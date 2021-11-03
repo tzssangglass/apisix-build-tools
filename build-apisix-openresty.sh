@@ -8,14 +8,14 @@ if [ $# -gt 0 ] && [ "$1" == "latest" ]; then
     apisix_nginx_module_ver=""
     lua_var_nginx_module_ver=""
     debug_args="--with-debug"
-    OR_PREFIX=${OR_PREFIX:="/opt/homebrew/Cellar/openresty"}
+    OR_PREFIX=${OR_PREFIX:="/usr/local/Cellar/openresty"}
 else
     ngx_multi_upstream_module_ver="-b 1.0.0"
     mod_dubbo_ver="-b 1.0.0"
     apisix_nginx_module_ver="-b 1.3.0"
     lua_var_nginx_module_ver="-b v0.5.2"
     debug_args=${debug_args:-}
-    OR_PREFIX=${OR_PREFIX:="/opt/homebrew/Cellar/openresty"}
+    OR_PREFIX=${OR_PREFIX:="/usr/local/Cellar/openresty"}
 fi
 
 prev_workdir="$PWD"
