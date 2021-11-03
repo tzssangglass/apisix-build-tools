@@ -5,7 +5,7 @@ set -x
 dnf install -y dnf-plugins-core
 dnf config-manager --add-repo https://openresty.org/package/fedora/openresty.repo
 dnf -y install gcc gcc-c++ patch wget git make sudo
-dnf -y install openresty-openssl111-debug-devel openresty-pcre-devel openresty-zlib-devel
+dnf -y install openresty-openssl111-debug-devel openresty-pcre-devel openresty-zlib-devel openldap-devel
 
 export openssl_prefix=/usr/local/openresty-debug/openssl111
 export zlib_prefix=/usr/local/openresty/zlib
