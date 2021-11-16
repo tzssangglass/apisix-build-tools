@@ -9,7 +9,7 @@ if [ $# -gt 0 ] && [ "$1" == "latest" ]; then
     wasm_nginx_module_ver=""
     lua_var_nginx_module_ver=""
     debug_args="--with-debug"
-    OR_PREFIX=${OR_PREFIX:="/usr/local/Cellar/openresty"}
+    OR_PREFIX=${OR_PREFIX:="/usr/local/Cellar/openresty-debug"}
 else
     ngx_multi_upstream_module_ver="-b 1.0.0"
     mod_dubbo_ver="-b 1.0.0"
