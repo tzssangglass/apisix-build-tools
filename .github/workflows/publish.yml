@@ -83,38 +83,41 @@ jobs:
           name: "apisix-dashboard-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm"
           path: "./apisix-dashboard-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm"
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Push apisix RPM Package to Aliyun OSS
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix/') }}
         run: |
           echo "[Credentials]" >> /tmp/ossutilconfig
           echo "language=EN" >> /tmp/ossutilconfig
-          echo "endpoint=oss-cn-shenzhen.aliyuncs.com" >> /tmp/ossutilconfig
+          echo "endpoint=oss-cn-shanghai.aliyuncs.com" >> /tmp/ossutilconfig
           echo "accessKeyID=${{ secrets.ACCESS_KEY_ID }}" >> /tmp/ossutilconfig
           echo "accessKeySecret=${{ secrets.ACCESS_KEY_SECRET }}" >> /tmp/ossutilconfig
           wget http://gosspublic.alicdn.com/ossutil/1.7.3/ossutil64
           chmod 755 ossutil64
-          ./ossutil64 cp -f ./apisix-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm oss://apisix-repo/packages/centos/7/x86_64/ --config-file=/tmp/ossutilconfig
+          ./ossutil64 cp -f ./apisix-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm oss://tzs-apisix-repo/packages/centos/7/x86_64/ --config-file=/tmp/ossutilconfig
 
       - name: Push apisix-base RPM Package to Aliyun OSS
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }}
         run: |
           echo "[Credentials]" >> /tmp/ossutilconfig
           echo "language=EN" >> /tmp/ossutilconfig
-          echo "endpoint=oss-cn-shenzhen.aliyuncs.com" >> /tmp/ossutilconfig
+          echo "endpoint=oss-cn-shanghai.aliyuncs.com" >> /tmp/ossutilconfig
           echo "accessKeyID=${{ secrets.ACCESS_KEY_ID }}" >> /tmp/ossutilconfig
           echo "accessKeySecret=${{ secrets.ACCESS_KEY_SECRET }}" >> /tmp/ossutilconfig
           wget http://gosspublic.alicdn.com/ossutil/1.7.3/ossutil64
           chmod 755 ossutil64
-          ./ossutil64 cp -f ./apisix-base-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm oss://apisix-repo/packages/centos/7/x86_64/ --config-file=/tmp/ossutilconfig
+          ./ossutil64 cp -f ./apisix-base-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm oss://tzs-apisix-repo/packages/centos/7/x86_64/ --config-file=/tmp/ossutilconfig
 
       - name: Push apisix-dashboard RPM Package to Aliyun OSS
         if: ${{ startsWith(steps.tag_type.outputs.version, 'dashboard/') }}
         run: |
           echo "[Credentials]" >> /tmp/ossutilconfig
           echo "language=EN" >> /tmp/ossutilconfig
-          echo "endpoint=oss-cn-shenzhen.aliyuncs.com" >> /tmp/ossutilconfig
+          echo "endpoint=oss-cn-shanghai.aliyuncs.com" >> /tmp/ossutilconfig
           echo "accessKeyID=${{ secrets.ACCESS_KEY_ID }}" >> /tmp/ossutilconfig
           echo "accessKeySecret=${{ secrets.ACCESS_KEY_SECRET }}" >> /tmp/ossutilconfig
           wget http://gosspublic.alicdn.com/ossutil/1.7.3/ossutil64
           chmod 755 ossutil64
-          ./ossutil64 cp -f ./apisix-dashboard-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm oss://apisix-repo/packages/centos/7/x86_64/ --config-file=/tmp/ossutilconfig
+          ./ossutil64 cp -f ./apisix-dashboard-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm oss://tzs-apisix-repo/packages/centos/7/x86_64/ --config-file=/tmp/ossutilconfig
