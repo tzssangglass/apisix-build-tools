@@ -85,22 +85,16 @@ jobs:
 
       - name: Export
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }}
-        run: |
-          echo "${{ secrets.RPM_GPG_PRIV_KEY }}" >> /tmp/rpm-gpg-publish.private
-          echo "${{ secrets.RPM_GPG_PASSPHRASE }}" >> /tmp/rpm-gpg-publish.passphrase
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-
-      - name: Sign apisix-base RPM Package
-        if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }}
         env:
           GPG_NAME: "TZS APISIX Publish (Only For Test)"
           GPG_MAIL: "<tzssangglass@apisix.apache.org>"
+          APISIX_BASE_TAG_VERSION: ${{ steps.tag_env.outputs.version}}
         run: |
+          echo "${{ secrets.RPM_GPG_PRIV_KEY }}" >> /tmp/rpm-gpg-publish.private
+          echo "${{ secrets.RPM_GPG_PASSPHRASE }}" >> /tmp/rpm-gpg-publish.passphrase
           ./utils/sign-rpm.sh import_gpg_key
-          ./utils/sign-rpm.sh sign_rpm rpm_sign
-          ./utils/sign-rpm.sh sign_rpm rpm_checksig
+          ./utils/sign-rpm.sh rpm_sign
+          ./utils/sign-rpm.sh rpm_checksig
 
       - name: Push apisix RPM Package to Aliyun OSS
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix/') }}
