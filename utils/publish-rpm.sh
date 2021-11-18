@@ -75,7 +75,7 @@ backup_and_rebuild_repo() {
     cd ./x86_64
 
     sudo apt-get update
-    sudo apt-get createrepo -y
+    sudo apt install createrepo -y
     createrepo .
     cd ../
 }
