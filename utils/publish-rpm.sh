@@ -73,8 +73,9 @@ backup_and_rebuild_repo() {
     # rebuild repo
     cp ./apisix-base-${APISIX_BASE_TAG_VERSION}-0.el7.x86_64.rpm ./x86_64
     cd ./x86_64
+
     sudo apt-get update
-    sudo apt-get install createrepo -y
+    sudo apt-get createrepo -y
     createrepo .
     cd ../
 }

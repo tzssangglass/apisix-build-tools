@@ -10,7 +10,7 @@ concurrency:
 jobs:
   publish_apisix:
     name: Build and Publish RPM Package
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     timeout-minutes: 60
 
     steps:
