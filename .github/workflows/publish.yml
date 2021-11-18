@@ -95,6 +95,9 @@ jobs:
           echo "${{ secrets.RPM_GPG_PASSPHRASE }}" >> /tmp/rpm-gpg-publish.passphrase
           ./utils/publish-rpm.sh sign_apisix_base
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Backup and rebuild RPM Repository
         env:
           ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
