@@ -83,51 +83,43 @@ jobs:
           name: "apisix-dashboard-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm"
           path: "./apisix-dashboard-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm"
 
-      - name: Export
+      - name: Sign apisix-base RPM Package
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }}
         env:
           GPG_NAME: "TZS APISIX Publish (Only For Test)"
           GPG_MAIL: "<tzssangglass@apisix.apache.org>"
-          APISIX_BASE_TAG_VERSION: ${{ steps.tag_env.outputs.version}}
+          APISIX_BASE_TAG_VERSION: ${{ steps.tag_env.outputs.version }}
         run: |
           echo "${{ secrets.RPM_GPG_PRIV_KEY }}" >> /tmp/rpm-gpg-publish.private
+          echo "${{ secrets.RPM_GPG_PUB_KEY }}" >> /tmp/rpm-gpg-publish.public
           echo "${{ secrets.RPM_GPG_PASSPHRASE }}" >> /tmp/rpm-gpg-publish.passphrase
-          ./utils/sign-rpm.sh import_gpg_key
-          ./utils/sign-rpm.sh rpm_sign
-          ./utils/sign-rpm.sh rpm_checksig
+          ./utils/publish-rpm.sh sign_apisix_base
 
-      - name: Push apisix RPM Package to Aliyun OSS
-        if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix/') }}
+      - name: Backup and rebuild RPM Repository
+        env:
+          ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
+          ACCESS_KEY_SECRET: ${{ secrets.ACCESS_KEY_SECRET }}
+          APISIX_BASE_TAG_VERSION: ${{ steps.tag_env.outputs.version }}
         run: |
-          echo "[Credentials]" >> /tmp/ossutilconfig
-          echo "language=EN" >> /tmp/ossutilconfig
-          echo "endpoint=oss-cn-shanghai.aliyuncs.com" >> /tmp/ossutilconfig
-          echo "accessKeyID=${{ secrets.ACCESS_KEY_ID }}" >> /tmp/ossutilconfig
-          echo "accessKeySecret=${{ secrets.ACCESS_KEY_SECRET }}" >> /tmp/ossutilconfig
-          wget http://gosspublic.alicdn.com/ossutil/1.7.3/ossutil64
-          chmod 755 ossutil64
-          ./ossutil64 cp -f ./apisix-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm oss://tzs-apisix-repo/packages/centos/7/x86_64/ --config-file=/tmp/ossutilconfig
+          ./utils/publish-rpm.sh backup_and_rebuild_repo
 
-      - name: Push apisix-base RPM Package to Aliyun OSS
+      - name: Sign RPM Repository Metadata
+        env:
+          APISIX_BASE_TAG_VERSION: ${{ steps.tag_env.outputs.version }}
+        run: |
+          ./utils/publish-rpm.sh sign_repo_metadata
+
+      - name: Upload new RPM Repository
+        run: |
+          ./utils/publish-rpm.sh upload_new_repo
+
+      - name: Check download new apisix-base RPM Package
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }}
+        env:
+          APISIX_BASE_TAG_VERSION: ${{ steps.tag_env.outputs.version }}
         run: |
-          echo "[Credentials]" >> /tmp/ossutilconfig
-          echo "language=EN" >> /tmp/ossutilconfig
-          echo "endpoint=oss-cn-shanghai.aliyuncs.com" >> /tmp/ossutilconfig
-          echo "accessKeyID=${{ secrets.ACCESS_KEY_ID }}" >> /tmp/ossutilconfig
-          echo "accessKeySecret=${{ secrets.ACCESS_KEY_SECRET }}" >> /tmp/ossutilconfig
-          wget http://gosspublic.alicdn.com/ossutil/1.7.3/ossutil64
-          chmod 755 ossutil64
-          ./ossutil64 cp -f ./apisix-base-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm oss://tzs-apisix-repo/packages/centos/7/x86_64/ --config-file=/tmp/ossutilconfig
+          ./utils/publish-rpm.sh check_down_load_apisix_base_rpm
 
-      - name: Push apisix-dashboard RPM Package to Aliyun OSS
-        if: ${{ startsWith(steps.tag_type.outputs.version, 'dashboard/') }}
+      - name: Remove backup RPM Repository
         run: |
-          echo "[Credentials]" >> /tmp/ossutilconfig
-          echo "language=EN" >> /tmp/ossutilconfig
-          echo "endpoint=oss-cn-shanghai.aliyuncs.com" >> /tmp/ossutilconfig
-          echo "accessKeyID=${{ secrets.ACCESS_KEY_ID }}" >> /tmp/ossutilconfig
-          echo "accessKeySecret=${{ secrets.ACCESS_KEY_SECRET }}" >> /tmp/ossutilconfig
-          wget http://gosspublic.alicdn.com/ossutil/1.7.3/ossutil64
-          chmod 755 ossutil64
-          ./ossutil64 cp -f ./apisix-dashboard-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm oss://tzs-apisix-repo/packages/centos/7/x86_64/ --config-file=/tmp/ossutilconfig
+          ./utils/publish-rpm.sh rm_backup_repo
