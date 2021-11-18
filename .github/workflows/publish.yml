@@ -83,14 +83,21 @@ jobs:
           name: "apisix-dashboard-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm"
           path: "./apisix-dashboard-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm"
 
+      - name: Export
+        if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }}
+        run: |
+          echo "${{ secrets.RPM_GPG_PRIV_KEY }}" >> /tmp/rpm-gpg-publish.private
+          echo "${{ secrets.RPM_GPG_PASSPHRASE }}" >> /tmp/rpm-gpg-publish.passphrase
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Sign apisix-base RPM Package
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }}
         env:
           GPG_NAME: "TZS APISIX Publish (Only For Test)"
           GPG_MAIL: "<tzssangglass@apisix.apache.org>"
         run: |
-          echo "${{ secrets.RPM_GPG_PRIV_KEY }}" >> /tmp/rpm-gpg-publish.private
-          echo "${{ secrets.RPM_GPG_PASSPHRASE }}" >> /tmp/rpm-gpg-publish.passphrase
           ./utils/sign-rpm.sh import_gpg_key
           ./utils/sign-rpm.sh sign_rpm rpm_sign
           ./utils/sign-rpm.sh sign_rpm rpm_checksig
