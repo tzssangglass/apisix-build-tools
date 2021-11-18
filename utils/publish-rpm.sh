@@ -82,6 +82,7 @@ backup_and_rebuild_repo() {
 
 
 sign_repo_metadata() {
+    rm ./x86_64/repodata/repomd.xml.asc
     gpg --batch --pinentry-mode loopback --passphrase-file /tmp/rpm-gpg-publish.passphrase --detach-sign --armor ./x86_64/repodata/repomd.xml
 
     out=$(gpg --verify x86_64/repodata/repomd.xml.asc)
