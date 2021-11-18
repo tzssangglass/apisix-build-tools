@@ -4,9 +4,6 @@ set -x
 
 
 import_gpg_key() {
-    echo "${{ secrets.RPM_GPG_PRIV_KEY }}" >> /tmp/rpm-gpg-publish.private
-    echo "${{ secrets.RPM_GPG_PASSPHRASE }}" >> /tmp/rpm-gpg-publish.passphrase
-
     gpg --import --pinentry-mode loopback --batch --passphrase-file \
     /tmp/rpm-gpg-publish.passphrase /tmp/rpm-gpg-publish.private
 
