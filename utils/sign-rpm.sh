@@ -4,16 +4,16 @@ set -x
 
 
 import_gpg_key() {
-    sudo gpg --import --pinentry-mode loopback --batch --passphrase-file \
+    gpg --import --pinentry-mode loopback --batch --passphrase-file \
     /tmp/rpm-gpg-publish.passphrase /tmp/rpm-gpg-publish.private
 
-    sudo gpg --list-keys --fingerprint | grep "${GPG_MAIL}" -B 1 \
+    gpg --list-keys --fingerprint | grep "${GPG_MAIL}" -B 1 \
     | tr -d ' ' | head -1 | awk 'BEGIN { FS = "\n" } ; { print $1":6:" }' \
     | gpg --import-ownertrust
 }
 
 rpm_sign() {
-    sudo cat > ~/.rpmmacros <<EOF
+    cat > ~/.rpmmacros <<EOF
 # Macros for signing RPMs.
 %_signature gpg
 %_gpg_path ${HOME}/.gnupg
@@ -21,11 +21,11 @@ rpm_sign() {
 %_gpgbin /usr/bin/gpg
 %__gpg_sign_cmd %{__gpg} gpg --batch --verbose --no-armor --pinentry-mode loopback --passphrase-file /tmp/rpm-gpg-publish.passphrase --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} --digest-algo sha256 %{__plaintext_filename}
 EOF
-    sudo rpmsign --addsign ./apisix-base-${{ steps.tag_env.outputs.version }}-0.el7.x86_64.rpm
+    rpmsign --addsign ./apisix-base-${{ steps.tag_env.outputs.version }}-0.el7.x86_64.rpm
 }
 
 rpm_checksig() {
-    sudo rpm --import https://repos.apiseven.com/KEYS
+    rpm --import https://repos.apiseven.com/KEYS
 
     out=$(rpm --checksig ./apisix-base-${{ steps.tag_env.outputs.version }}-0.el7.x86_64.rpm)
     if ! echo "$out" | grep "digests signatures OK"; then
