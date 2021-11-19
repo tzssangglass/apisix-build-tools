@@ -102,7 +102,7 @@ upload_new_repo() {
 
 check_down_load_apisix_base_rpm() {
     mkdir temp && cd temp
-    wget https://repos.apiseven.com/packages/centos/7/x86_64/apisix-base-${APISIX_BASE_TAG_VERSION}-0.el7.x86_64.rpm
+    wget https://tzs-apisix-repo.oss-cn-shanghai.aliyuncs.com/packages/centos/7/x86_64/apisix-base-${APISIX_BASE_TAG_VERSION}-0.el7.x86_64.rpm
     if [ ! -f apisix-base-${APISIX_BASE_TAG_VERSION}-0.el7.x86_64.rpm ]; then
         echo "failed: download new apisix-base rpm package"
         exit 1
