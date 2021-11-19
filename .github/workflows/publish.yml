@@ -49,8 +49,7 @@ jobs:
           echo "TARGET_APP=apisix-dashboarde" >> "$GITHUB_ENV"
 
       - name: Build target app RPM Package
-        if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix/') }}
-        env: 
+        env:
           TAG_VERSION: ${{ steps.tag_env.outputs.version }}
           TARGET_APP: ${{ env.TARGET_APP }}
         run: |
@@ -81,8 +80,7 @@ jobs:
           name: "apisix-dashboard-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm"
           path: "./apisix-dashboard-${{ steps.tag_env.outputs.version}}-0.el7.x86_64.rpm"
 
-      - name: Sign apisix-base RPM Package
-        if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }}
+      - name: Sign RPM Package
         env:
           GPG_NAME: "TZS APISIX Publish (Only For Test)"
           GPG_MAIL: "<tzssangglass@apisix.apache.org>"
@@ -113,8 +111,7 @@ jobs:
         run: |
           ./utils/publish-rpm.sh upload_new_repo
 
-      - name: Check download new apisix-base RPM Package
-        if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }}
+      - name: Check download new RPM Package
         env:
           TAG_VERSION: ${{ steps.tag_env.outputs.version }}
           TARGET_APP: ${{ env.TARGET_APP }}
