@@ -97,6 +97,8 @@ jobs:
           echo "${{ secrets.RPM_GPG_PUB_KEY }}" >> /tmp/rpm-gpg-publish.public
           echo "${{ secrets.RPM_GPG_PASSPHRASE }}" >> /tmp/rpm-gpg-publish.passphrase
           ./utils/publish-rpm.sh sign_target_app_rpm
+          date_tag=$(date +%Y%m%d)
+          echo "DATE_TAG=${date_tag}" >> "$GITHUB_ENV"
 
       - name: Backup and rebuild RPM Repository
         env:
@@ -104,9 +106,8 @@ jobs:
           ACCESS_KEY_SECRET: ${{ secrets.ACCESS_KEY_SECRET }}
           TAG_VERSION: ${{ steps.tag_env.outputs.version }}
           TARGET_APP: ${{ env.TARGET_APP }}
+          DATE_TAG: ${{ env.DATE_TAG }}
         run: |
-          date_tag=$(date +%Y%m%d)
-          echo "DATE_TAG=${date_tag}" >> "$GITHUB_ENV"
           ./utils/publish-rpm.sh backup_and_rebuild_repo
 
       - name: Sign RPM Repository Metadata
@@ -127,5 +128,7 @@ jobs:
           ./utils/publish-rpm.sh check_down_load_rpm
 
       - name: Remove backup RPM Repository
+        env:
+          DATE_TAG: ${{ env.DATE_TAG }}
         run: |
           ./utils/publish-rpm.sh rm_backup_repo
