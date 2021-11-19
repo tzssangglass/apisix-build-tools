@@ -63,7 +63,7 @@ jobs:
           # build apisix dashboard
           make package type=rpm app=dashboard checkout=${APISIX_DASHBOARD_TAG_VERSION} version=${APISIX_DASHBOARD_TAG_VERSION} image_base=centos image_tag=7
           mv ./output/apisix-dashboard-${APISIX_DASHBOARD_TAG_VERSION}-0.el7.x86_64.rpm ./
-          echo "TARGET_APP=apisix-dashboarde" >> "$GITHUB_ENV"
+          echo "TARGET_APP=apisix-dashboard" >> "$GITHUB_ENV"
 
       - name: Upload apisix Artifact
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix/') }}
