@@ -85,8 +85,8 @@ sign_repo_metadata() {
     rm ./x86_64/repodata/repomd.xml.asc
     gpg --batch --pinentry-mode loopback --passphrase-file /tmp/rpm-gpg-publish.passphrase --detach-sign --armor ./x86_64/repodata/repomd.xml
 
-    out=$(gpg --verify x86_64/repodata/repomd.xml.asc)
-    if ! echo "$out" | grep "Good signature from"; then
+    out=$(gpg --verify x86_64/repodata/repomd.xml.asc 2>&1)
+    if ! echo "$out" | grep -iq 'Good signature'; then
         echo "failed: check rpm metadata signatures"
         exit 1
     fi
