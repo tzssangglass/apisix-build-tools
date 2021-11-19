@@ -33,31 +33,37 @@ jobs:
         run: |
           echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/tags/})"
 
-      - name: Set env TARGET_APP to apisix
+      - name: Build apisix RPM Package
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix/') }}
+        env:
+          APISIX_TAG_VERSION: ${{ steps.tag_env.outputs.version}}
         run: |
+          # build apisix
+          make package type=rpm app=apisix openresty=apisix-base checkout=${APISIX_TAG_VERSION} version=${APISIX_TAG_VERSION} image_base=centos image_tag=7
+          mv ./output/apisix-${APISIX_TAG_VERSION}-0.el7.x86_64.rpm ./
           echo "TARGET_APP=apisix" >> "$GITHUB_ENV"
 
-      - name: Set env TARGET_APP to apisix-base
+      - name: Build apisix-base RPM Package
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }}
+        env:
+          APISIX_BASE_TAG_VERSION: ${{ steps.tag_env.outputs.version}}
         run: |
+          # build apisix-base
+          echo ${{ steps.tag_env.outputs.version}}
+          echo ${{ steps.tag_type.outputs.version}}
+          make package type=rpm app=apisix-base checkout=${APISIX_BASE_TAG_VERSION} version=${APISIX_BASE_TAG_VERSION} image_base=centos image_tag=7
+          mv ./output/apisix-base-${APISIX_BASE_TAG_VERSION}-0.el7.x86_64.rpm ./
           echo "TARGET_APP=apisix-base" >> "$GITHUB_ENV"
 
-      - name: Set env TARGET_APP to apisix-dashboarde
+      - name: Build apisix-dashboard RPM Package
         if: ${{ startsWith(steps.tag_type.outputs.version, 'dashboard/') }}
-        run: |
-          echo "TARGET_APP=apisix-dashboarde" >> "$GITHUB_ENV"
-
-      - name: Build target app RPM Package
         env:
-          TAG_VERSION: ${{ steps.tag_env.outputs.version }}
-          TARGET_APP: ${{ env.TARGET_APP }}
+          APISIX_DASHBOARD_TAG_VERSION: ${{ steps.tag_env.outputs.version}}
         run: |
-          # build
-          echo "TAG_VERSION: " ${TAG_VERSION}
-          echo "TARGET_APP: " ${TARGET_APP}
-          make package type=rpm app=${TARGET_APP} openresty=apisix-base checkout=${TAG_VERSION} version=${TAG_VERSION} image_base=centos image_tag=7
-          mv ./output/${TARGET_APP}-${TAG_VERSION}-0.el7.x86_64.rpm ./
+          # build apisix dashboard
+          make package type=rpm app=dashboard checkout=${APISIX_DASHBOARD_TAG_VERSION} version=${APISIX_DASHBOARD_TAG_VERSION} image_base=centos image_tag=7
+          mv ./output/apisix-dashboard-${APISIX_DASHBOARD_TAG_VERSION}-0.el7.x86_64.rpm ./
+          echo "TARGET_APP=apisix-dashboarde" >> "$GITHUB_ENV"
 
       - name: Upload apisix Artifact
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix/') }}
