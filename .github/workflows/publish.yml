@@ -105,6 +105,8 @@ jobs:
           TAG_VERSION: ${{ steps.tag_env.outputs.version }}
           TARGET_APP: ${{ env.TARGET_APP }}
         run: |
+          date_tag=$(date +%Y%m%d)
+          echo "DATE_TAG=${date_tag}" >> "$GITHUB_ENV"
           ./utils/publish-rpm.sh backup_and_rebuild_repo
 
       - name: Sign RPM Repository Metadata
