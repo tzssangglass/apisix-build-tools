@@ -18,7 +18,7 @@ rpm_checksig() {
 #    rpm --import https://repos.apiseven.com/KEYS
     rpm --import /tmp/rpm-gpg-publish.public
 
-    out=$(rpm --checksig ./apisix-base-${APISIX_BASE_TAG_VERSION}-0.el7.x86_64.rpm)
+    out=$(rpm --checksig ./${TARGET_APP}-${TAG_VERSION}-0.el7.x86_64.rpm)
     if ! echo "$out" | grep "digests signatures OK"; then
         echo "failed: check rpm digests signatures"
         exit 1
@@ -38,12 +38,12 @@ EOF
 }
 
 
-sign_apisix_base() {
+sign_target_app_rpm() {
     import_gpg_key
 
     init_rpmmacros
 
-    rpmsign --addsign ./apisix-base-${APISIX_BASE_TAG_VERSION}-0.el7.x86_64.rpm
+    rpmsign --addsign ./${TARGET_APP}-${TAG_VERSION}-0.el7.x86_64.rpm
 
     rpm_checksig
 }
@@ -71,7 +71,7 @@ backup_and_rebuild_repo() {
     ./ossutil64 cp -r oss://tzs-apisix-repo/packages/centos/7/x86_64 ./ --config-file=/tmp/ossutilconfig
 
     # rebuild repo
-    cp ./apisix-base-${APISIX_BASE_TAG_VERSION}-0.el7.x86_64.rpm ./x86_64
+    cp ./${TARGET_APP}-${TAG_VERSION}-0.el7.x86_64.rpm ./x86_64
     cd ./x86_64
 
     sudo apt-get update
@@ -102,9 +102,9 @@ upload_new_repo() {
 
 check_down_load_apisix_base_rpm() {
     mkdir temp && cd temp
-    wget https://tzs-apisix-repo.oss-cn-shanghai.aliyuncs.com/packages/centos/7/x86_64/apisix-base-${APISIX_BASE_TAG_VERSION}-0.el7.x86_64.rpm
-    if [ ! -f apisix-base-${APISIX_BASE_TAG_VERSION}-0.el7.x86_64.rpm ]; then
-        echo "failed: download new apisix-base rpm package"
+    wget https://tzs-apisix-repo.oss-cn-shanghai.aliyuncs.com/packages/centos/7/x86_64/${TARGET_APP}-${TAG_VERSION}-0.el7.x86_64.rpm
+    if [ ! -f ${TARGET_APP}-${TAG_VERSION}-0.el7.x86_64.rpm ]; then
+        echo "failed: download new ${TARGET_APP} rpm package"
         exit 1
     fi
     cd ../
@@ -120,8 +120,8 @@ rm_backup_repo() {
 case_opt=$1
 
 case ${case_opt} in
-sign_apisix_base)
-    sign_apisix_base
+sign_target_app_rpm)
+    sign_target_app_rpm
     ;;
 backup_and_rebuild_repo)
     backup_and_rebuild_repo

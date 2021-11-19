@@ -33,34 +33,27 @@ jobs:
         run: |
           echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/tags/})"
 
-      - name: Build apisix RPM Package
+      - name: Set env TARGET_APP
+        run: |
+          if [[ ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }} ]]; then
+              echo "TARGET_APP=apisix-base" >> "$GITHUB_ENV"
+          else if [[ ${{ startsWith(steps.tag_type.outputs.version, 'apisix/') }} ]]; then
+              echo "TARGET_APP=apisix" >> "$GITHUB_ENV"
+          else if [[ ${{ startsWith(steps.tag_type.outputs.version, 'dashboard/') }} ]]; then
+              echo "TARGET_APP=apisix-dashboard" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build target app RPM Package
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix/') }}
         env: 
-          APISIX_TAG_VERSION: ${{ steps.tag_env.outputs.version}}
+          TAG_VERSION: ${{ steps.tag_env.outputs.version }}
+          TARGET_APP: ${{ env.TARGET_APP }}
         run: |
-          # build apisix
-          make package type=rpm app=apisix openresty=apisix-base checkout=${APISIX_TAG_VERSION} version=${APISIX_TAG_VERSION} image_base=centos image_tag=7
-          mv ./output/apisix-${APISIX_TAG_VERSION}-0.el7.x86_64.rpm ./
-
-      - name: Build apisix-base RPM Package
-        if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }}
-        env: 
-          APISIX_BASE_TAG_VERSION: ${{ steps.tag_env.outputs.version}}
-        run: |
-          # build apisix-base
-          echo ${{ steps.tag_env.outputs.version}}
-          echo ${{ steps.tag_type.outputs.version}}
-          make package type=rpm app=apisix-base checkout=${APISIX_BASE_TAG_VERSION} version=${APISIX_BASE_TAG_VERSION} image_base=centos image_tag=7
-          mv ./output/apisix-base-${APISIX_BASE_TAG_VERSION}-0.el7.x86_64.rpm ./
-
-      - name: Build apisix-dashboard RPM Package
-        if: ${{ startsWith(steps.tag_type.outputs.version, 'dashboard/') }}
-        env: 
-          APISIX_DASHBOARD_TAG_VERSION: ${{ steps.tag_env.outputs.version}}
-        run: |
-          # build apisix dashboard
-          make package type=rpm app=dashboard checkout=${APISIX_DASHBOARD_TAG_VERSION} version=${APISIX_DASHBOARD_TAG_VERSION} image_base=centos image_tag=7
-          mv ./output/apisix-dashboard-${APISIX_DASHBOARD_TAG_VERSION}-0.el7.x86_64.rpm ./
+          # build
+          echo "TAG_VERSION: " ${TAG_VERSION}
+          echo "TARGET_APP: " ${TARGET_APP}
+          make package type=rpm app=${TARGET_APP} openresty=apisix-base checkout=${TAG_VERSION} version=${TAG_VERSION} image_base=centos image_tag=7
+          mv ./output/${TARGET_APP}-${TAG_VERSION}-0.el7.x86_64.rpm ./
 
       - name: Upload apisix Artifact
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix/') }}
@@ -88,24 +81,26 @@ jobs:
         env:
           GPG_NAME: "TZS APISIX Publish (Only For Test)"
           GPG_MAIL: "<tzssangglass@apisix.apache.org>"
-          APISIX_BASE_TAG_VERSION: ${{ steps.tag_env.outputs.version }}
+          TAG_VERSION: ${{ steps.tag_env.outputs.version }}
+          TARGET_APP: ${{ env.TARGET_APP }}
         run: |
           echo "${{ secrets.RPM_GPG_PRIV_KEY }}" >> /tmp/rpm-gpg-publish.private
           echo "${{ secrets.RPM_GPG_PUB_KEY }}" >> /tmp/rpm-gpg-publish.public
           echo "${{ secrets.RPM_GPG_PASSPHRASE }}" >> /tmp/rpm-gpg-publish.passphrase
-          ./utils/publish-rpm.sh sign_apisix_base
+          ./utils/publish-rpm.sh sign_target_app_rpm
 
       - name: Backup and rebuild RPM Repository
         env:
           ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
           ACCESS_KEY_SECRET: ${{ secrets.ACCESS_KEY_SECRET }}
-          APISIX_BASE_TAG_VERSION: ${{ steps.tag_env.outputs.version }}
+          TAG_VERSION: ${{ steps.tag_env.outputs.version }}
+          TARGET_APP: ${{ env.TARGET_APP }}
         run: |
           ./utils/publish-rpm.sh backup_and_rebuild_repo
 
       - name: Sign RPM Repository Metadata
         env:
-          APISIX_BASE_TAG_VERSION: ${{ steps.tag_env.outputs.version }}
+          TAG_VERSION: ${{ steps.tag_env.outputs.version }}
         run: |
           ./utils/publish-rpm.sh sign_repo_metadata
 
@@ -116,7 +111,8 @@ jobs:
       - name: Check download new apisix-base RPM Package
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }}
         env:
-          APISIX_BASE_TAG_VERSION: ${{ steps.tag_env.outputs.version }}
+          TAG_VERSION: ${{ steps.tag_env.outputs.version }}
+          TARGET_APP: ${{ env.TARGET_APP }}
         run: |
           ./utils/publish-rpm.sh check_down_load_apisix_base_rpm
 
