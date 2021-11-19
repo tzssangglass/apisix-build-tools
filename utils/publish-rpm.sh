@@ -100,7 +100,7 @@ upload_new_repo() {
 }
 
 
-check_down_load_apisix_base_rpm() {
+check_down_load_rpm() {
     mkdir temp && cd temp
     wget https://tzs-apisix-repo.oss-cn-shanghai.aliyuncs.com/packages/centos/7/x86_64/${TARGET_APP}-${TAG_VERSION}-0.el7.x86_64.rpm
     if [ ! -f ${TARGET_APP}-${TAG_VERSION}-0.el7.x86_64.rpm ]; then
@@ -132,8 +132,8 @@ sign_repo_metadata)
 upload_new_repo)
     upload_new_repo
     ;;
-check_down_load_apisix_base_rpm)
-    check_down_load_apisix_base_rpm
+check_down_load_rpm)
+    check_down_load_rpm
     ;;
 rm_backup_repo)
     rm_backup_repo

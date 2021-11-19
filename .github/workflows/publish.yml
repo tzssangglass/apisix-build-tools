@@ -33,15 +33,20 @@ jobs:
         run: |
           echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/tags/})"
 
-      - name: Set env TARGET_APP
+      - name: Set env TARGET_APP to apisix
+        if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix/') }}
         run: |
-          if [[ ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }} ]]; then
-              echo "TARGET_APP=apisix-base" >> "$GITHUB_ENV"
-          else if [[ ${{ startsWith(steps.tag_type.outputs.version, 'apisix/') }} ]]; then
-              echo "TARGET_APP=apisix" >> "$GITHUB_ENV"
-          else if [[ ${{ startsWith(steps.tag_type.outputs.version, 'dashboard/') }} ]]; then
-              echo "TARGET_APP=apisix-dashboard" >> "$GITHUB_ENV"
-          fi
+          echo "TARGET_APP=apisix" >> "$GITHUB_ENV"
+
+      - name: Set env TARGET_APP to apisix-base
+        if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix-base/') }}
+        run: |
+          echo "TARGET_APP=apisix-base" >> "$GITHUB_ENV"
+
+      - name: Set env TARGET_APP to apisix-dashboarde
+        if: ${{ startsWith(steps.tag_type.outputs.version, 'dashboard/') }}
+        run: |
+          echo "TARGET_APP=apisix-dashboarde" >> "$GITHUB_ENV"
 
       - name: Build target app RPM Package
         if: ${{ startsWith(steps.tag_type.outputs.version, 'apisix/') }}
@@ -114,7 +119,7 @@ jobs:
           TAG_VERSION: ${{ steps.tag_env.outputs.version }}
           TARGET_APP: ${{ env.TARGET_APP }}
         run: |
-          ./utils/publish-rpm.sh check_down_load_apisix_base_rpm
+          ./utils/publish-rpm.sh check_down_load_rpm
 
       - name: Remove backup RPM Repository
         run: |
