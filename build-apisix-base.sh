@@ -2,7 +2,7 @@
 set -euo pipefail
 set -x
 
-if [ $# -gt 0 ] && [ "$1" == "latest" ]; then
+if ([ $# -gt 0 ] && [ "$1" == "latest" ]) || [ "$version" == "latest" ]; then
     ngx_multi_upstream_module_ver=""
     mod_dubbo_ver=""
     apisix_nginx_module_ver=""
@@ -17,7 +17,7 @@ if [ $# -gt 0 ] && [ "$1" == "latest" ]; then
     --add-module=../wasm-nginx-module \
     --add-module=../lua-var-nginx-module \
     "
-    OR_PREFIX=${OR_PREFIX:="/usr/local/Cellar/openresty-debug"}
+    OR_PREFIX=${OR_PREFIX:="/usr/local/openresty-debug"}
 else
     ngx_multi_upstream_module_ver="-b 1.0.1"
     mod_dubbo_ver="-b 1.0.1"
@@ -32,7 +32,7 @@ else
     --add-module=../wasm-nginx-module \
     --add-module=../lua-var-nginx-module \
     "
-    OR_PREFIX=${OR_PREFIX:="/usr/local/Cellar/openresty"}
+    OR_PREFIX=${OR_PREFIX:="/usr/local/openresty"}
 fi
 
 prev_workdir="$PWD"
@@ -130,10 +130,9 @@ cd openresty-${or_ver} || exit 1
     --with-threads \
     --with-compat \
     --with-luajit-xcflags="$luajit_xcflags" \
-    $no_pool_patch \
-    -j 4
+    $no_pool_patch
 
-make -j 4
+make
 sudo make install
 cd ..
 
