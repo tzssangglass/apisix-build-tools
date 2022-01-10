@@ -9,14 +9,29 @@ if [ $# -gt 0 ] && [ "$1" == "latest" ]; then
     wasm_nginx_module_ver=""
     lua_var_nginx_module_ver=""
     debug_args="--with-debug"
+    add_module_args="
+    --add-module=../mod_dubbo \
+    --add-module=../ngx_multi_upstream_module \
+    --add-module=../apisix-nginx-module \
+    --add-module=../apisix-nginx-module/src/stream \
+    --add-module=../wasm-nginx-module \
+    --add-module=../lua-var-nginx-module \
+    "
     OR_PREFIX=${OR_PREFIX:="/usr/local/Cellar/openresty-debug"}
 else
-    ngx_multi_upstream_module_ver="-b 1.0.0"
-    mod_dubbo_ver="-b 1.0.0"
-    apisix_nginx_module_ver="-b 1.3.0"
-    wasm_nginx_module_ver="-b 0.1.0"
+    ngx_multi_upstream_module_ver="-b 1.0.1"
+    mod_dubbo_ver="-b 1.0.1"
+    apisix_nginx_module_ver="-b 1.4.0"
+    wasm_nginx_module_ver="-b 0.3.0"
     lua_var_nginx_module_ver="-b v0.5.2"
     debug_args=${debug_args:-}
+    add_module_args="
+    --add-module=../mod_dubbo \
+    --add-module=../ngx_multi_upstream_module \
+    --add-module=../apisix-nginx-module \
+    --add-module=../wasm-nginx-module \
+    --add-module=../lua-var-nginx-module \
+    "
     OR_PREFIX=${OR_PREFIX:="/usr/local/Cellar/openresty"}
 fi
 
@@ -25,7 +40,7 @@ repo=$(basename "$prev_workdir")
 workdir=$(mktemp -d)
 cd "$workdir" || exit 1
 
-or_ver="1.19.3.2"
+or_ver="1.19.9.1"
 wget --no-check-certificate https://openresty.org/download/openresty-${or_ver}.tar.gz
 tar -zxvpf openresty-${or_ver}.tar.gz > /dev/null
 
@@ -86,12 +101,8 @@ cd openresty-${or_ver} || exit 1
 ./configure --prefix="$OR_PREFIX" \
     --with-cc-opt="-DAPISIX_BASE_VER=$version $cc_opt" \
     --with-ld-opt="-Wl,-rpath,$OR_PREFIX/wasmtime-c-api/lib $ld_opt" \
-    --add-module=../mod_dubbo \
-    --add-module=../ngx_multi_upstream_module \
-    --add-module=../apisix-nginx-module \
-    --add-module=../wasm-nginx-module \
-    --add-module=../lua-var-nginx-module \
     $debug_args \
+    $add_module_args \
     --with-poll_module \
     --with-pcre-jit \
     --without-http_rds_json_module \
@@ -119,9 +130,10 @@ cd openresty-${or_ver} || exit 1
     --with-threads \
     --with-compat \
     --with-luajit-xcflags="$luajit_xcflags" \
-    $no_pool_patch
+    $no_pool_patch \
+    -j 4
 
-make
+make -j 4
 sudo make install
 cd ..
 

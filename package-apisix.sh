@@ -10,14 +10,22 @@ if [ "$PACKAGE_TYPE" == "deb" ]
 then
 	dep_pcre="libpcre3"
 fi
+dep_which="which"
+if [ "$PACKAGE_TYPE" == "deb" ]
+then
+	dep_which="debianutils"
+fi
 
 # Determine the min version of openresty or apisix-base
-#	openresty >= 1.17.8.2
-#	apisix-base >= 1.19.3.2.0
 or_version="1.17.8.2"
 if [ "$OPENRESTY" == "apisix-base" ]
 then
-	or_version="1.19.3.2.0"
+	or_version="1.19.9.1.0"
+elif [ "$OPENRESTY" == "apisix-base-latest" ]
+then
+    # For CI
+    OPENRESTY="apisix-base"
+    or_version="latest"
 fi
 
 # Determine the name of artifact
@@ -36,6 +44,7 @@ fpm -f -s dir -t "$PACKAGE_TYPE" \
 	--iteration "$ITERATION" \
 	-d "$OPENRESTY >= $or_version" \
 	-d "$dep_pcre" \
+	-d "$dep_which" \
 	--description 'Apache APISIX is a distributed gateway for APIs and Microservices, focused on high performance and reliability.' \
 	--license "ASL 2.0" \
 	-C /tmp/build/output/apisix \
