@@ -2,6 +2,8 @@
 set -euo pipefail
 set -x
 
+version=${version:-0.0.0}
+
 if ([ $# -gt 0 ] && [ "$1" == "latest" ]) || [ "$version" == "latest" ]; then
     ngx_multi_upstream_module_ver=""
     mod_dubbo_ver=""
@@ -13,8 +15,8 @@ if ([ $# -gt 0 ] && [ "$1" == "latest" ]) || [ "$version" == "latest" ]; then
 else
     ngx_multi_upstream_module_ver="-b 1.0.1"
     mod_dubbo_ver="-b 1.0.2"
-    apisix_nginx_module_ver="-b 1.5.0"
-    wasm_nginx_module_ver="-b 0.4.0"
+    apisix_nginx_module_ver="-b 1.6.0"
+    wasm_nginx_module_ver="-b 0.5.1"
     lua_var_nginx_module_ver="-b v0.5.2"
     debug_args=${debug_args:-}
     OR_PREFIX=${OR_PREFIX:="/usr/local/openresty"}
@@ -76,7 +78,6 @@ cd wasm-nginx-module || exit 1
 ./install-wasmtime.sh
 cd ..
 
-version=${version:-0.0.0}
 cc_opt=${cc_opt:-}
 ld_opt=${ld_opt:-}
 luajit_xcflags=${luajit_xcflags:="-DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT"}
