@@ -22,6 +22,11 @@ tar -zxvpf openresty-${or_ver}.tar.gz > /dev/null
 cd /usr/local/apisix-nginx-module/patch
 ./patch.sh /usr/local/openresty-${or_ver}
 
+sed -i '/ngx_http_lua_shdict.c/d' /usr/local/openresty-1.19.9.1/bundle/ngx_lua-0.10.20/config
+sed -i '/ngx_http_lua_shdict.h/d' /usr/local/openresty-1.19.9.1/bundle/ngx_lua-0.10.20/config
+sed -i '/ngx_stream_lua_shdict.c/d' /usr/local/openresty-1.19.9.1/bundle/ngx_stream_lua-0.0.10/config
+sed -i '/ngx_stream_lua_shdict.h/d' /usr/local/openresty-1.19.9.1/bundle/ngx_stream_lua-0.0.10/config
+
 cd /usr/local
 
 cd openresty-${or_ver} || exit 1
@@ -31,6 +36,7 @@ cd openresty-${or_ver} || exit 1
     $debug_args \
     --add-module=/usr/local/apisix-nginx-module \
     --add-module=/usr/local/apisix-nginx-module/src/stream \
+    --add-module=/usr/local/apisix-nginx-module/src/meta \
     --with-poll_module \
     --with-pcre-jit \
     --without-http_rds_json_module \
