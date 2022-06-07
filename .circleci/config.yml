@@ -53,6 +53,34 @@ jobs:
                 exit 125
             fi
 
+  build-and-push-apisix-base-dev-image:
+    machine:
+      image: ubuntu-2004:202101-01
+    resource_class: arm.medium
+
+    docker:
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_TOKEN
+
+    steps:
+      - setup_remote_docker:
+          version: 20.10.11
+      - checkout
+      - run: git submodule sync
+      - run: git submodule update --init
+      - run:
+          name: install dependencies
+          command: |
+            sudo apt-get install -y make
+
+      - name: Build and Push Docker Image
+        run: |
+          docker buildx build -t turien/apisix-base:dev --push \
+            --build-arg VERSION=dev --build-arg BUILD_LATEST=latest \
+            --platform linux/arm64 \
+            -f ./dockerfiles/Dockerfile.apisix-base.apk .
+
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
@@ -62,3 +90,9 @@ workflows:
         filters:
             branches:
               only: master
+  build-and-push-apisix-base-dev-image:
+    jobs:
+      - build-and-push-apisix-base-dev-image:
+        filters:
+            branches:
+              only: abdd
