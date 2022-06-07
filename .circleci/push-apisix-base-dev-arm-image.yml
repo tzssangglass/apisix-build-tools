@@ -1,0 +1,43 @@
+version: 2.1
+
+workflows:
+  build-apisix-base-dev:
+    jobs:
+      - build:
+        filters:
+            branches:
+              only: abdd
+
+# on:
+#   schedule:
+#     # UTC 0:00 AM (See https://pubs.opengroup.org/onlinepubs/9699919799/utilities/crontab.html#tag_20_25_07)
+#     - cron: "0 0 * * *"
+
+jobs:
+  build:
+    machine:
+      image: ubuntu-2004:202101-01
+    resource_class: arm.medium
+
+    docker:
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_TOKEN
+
+    steps:
+      - setup_remote_docker:
+          version: 20.10.11
+      - checkout
+      - run: git submodule sync
+      - run: git submodule update --init
+      - run:
+          name: install dependencies
+          command: |
+            sudo apt-get install -y make
+
+      - name: Build and Push Docker Image
+        run: |
+          docker buildx build -t turien/apisix-base:dev --push \
+            --build-arg VERSION=dev --build-arg BUILD_LATEST=latest \
+            --platform linux/arm64 \
+            -f ./dockerfiles/Dockerfile.apisix-base.apk .
