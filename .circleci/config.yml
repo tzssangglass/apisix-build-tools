@@ -58,6 +58,11 @@ jobs:
       image: ubuntu-2004:202101-01
     resource_class: arm.medium
 
+    docker:
+      auth:
+        username: $DOCKERHUB_USERNAME
+        password: $DOCKERHUB_TOKEN
+
     steps:
       - checkout
       - run:
