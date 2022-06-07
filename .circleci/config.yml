@@ -74,12 +74,13 @@ jobs:
           command: |
             sudo apt-get install -y make
 
-      - name: Build and Push Docker Image
-        run: |
-          docker buildx build -t turien/apisix-base:dev --push \
-            --build-arg VERSION=dev --build-arg BUILD_LATEST=latest \
-            --platform linux/arm64 \
-            -f ./dockerfiles/Dockerfile.apisix-base.apk .
+      - run:
+          name: Build and Push Docker Image
+          command: |
+            docker buildx build -t turien/apisix-base:dev --push \
+              --build-arg VERSION=dev --build-arg BUILD_LATEST=latest \
+              --platform linux/arm64 \
+              -f ./dockerfiles/Dockerfile.apisix-base.apk .
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
