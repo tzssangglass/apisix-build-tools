@@ -58,6 +58,12 @@ jobs:
       image: ubuntu-2004:202101-01
     resource_class: arm.medium
 
+    docker:
+      - image: cimg/go:1.17
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_TOKEN
+
     steps:
       - checkout
       - run:
@@ -72,7 +78,6 @@ jobs:
       - run:
           name: Build and Push Docker Image
           command: |
-            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             docker buildx build -t turien/apisix-base:dev --push \
             --build-arg VERSION=dev --build-arg BUILD_LATEST=latest \
             --platform linux/arm64 \
