@@ -29,4 +29,4 @@ FROM ${IMAGE_BASE}:${IMAGE_TAG} as prod
 
 # copy openresty and openresty-debug
 COPY --from=build /usr/local /usr/local
-
+COPY --from=build /tmp/dist /tmp/dist
