@@ -28,7 +28,7 @@ RUN ./build-common.sh build_apisix_base_deb ${build_latest} \
 FROM ${IMAGE_BASE}:${IMAGE_TAG} as prod
 
 # copy openresty and openresty-debug
-COPY --from=build /usr/local/openrest* /usr/local
+COPY --from=build /usr/local/openrest*/ /usr/local/
 
 ENV PATH=$PATH:/usr/local/openresty-debug/luajit/bin:/usr/local/openresty-debug/nginx/sbin:/usr/local/openresty-debug/bin
 
