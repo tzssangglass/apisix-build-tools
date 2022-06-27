@@ -118,7 +118,7 @@ func_repo_publish() {
     # ${2} - repo publish bucket
     # ${3} - COS path
     coscli -e "${VAR_COS_ENDPOINT}" rm -r -f "cos://${2}/packages/${3}"
-    coscli -e "${VAR_COS_ENDPOINT}" cp -r "cos://${1}/packages/${3}" "cos://${2}/packages${3}"
+    coscli -e "${VAR_COS_ENDPOINT}" cp -r "cos://${1}/packages/${3}" "cos://${2}/packages/${3}"
 }
 
 # =======================================
