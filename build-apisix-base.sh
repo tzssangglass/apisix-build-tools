@@ -61,8 +61,6 @@ else
     git clone --depth=1 -b $wasm_nginx_module_ver \
         https://github.com/api7/wasm-nginx-module.git \
         wasm-nginx-module-${wasm_nginx_module_ver}
-    git clone --depth=1 $wasm_nginx_module_ver \
-        https://github.com/tzssangglass/wasm-nginx-module.git -b macos_x86_64
 fi
 
 if [ "$repo" == lua-var-nginx-module ]; then
