@@ -13,6 +13,7 @@ VAR_TENCENT_COS_UTILS_VERSION=${VAR_TENCENT_COS_UTILS_VERSION:-v0.11.0-beta}
 VAR_RPM_WORKBENCH_DIR=${VAR_RPM_WORKBENCH_DIR:-/tmp/output}
 VAR_GPG_PRIV_KET=${VAR_GPG_PRIV_KET:-/tmp/rpm-gpg-publish.private}
 VAR_GPG_PASSPHRASE=${VAR_GPG_PASSPHRASE:-/tmp/rpm-gpg-publish.passphrase}
+ARCH=${ARCH:-`(uname -m | tr '[:upper:]' '[:lower:]')`}
 
 # =======================================
 # GPG extension
@@ -66,21 +67,27 @@ _EOC_
 # =======================================
 func_repo_init() {
     # ${1} - repo workbench path
-    mkdir -p "${1}"/centos/{7,8}/x86_64
+    mkdir -p "${1}"/centos/{7,8}/${ARCH}
 }
 
 func_repo_clone() {
     # ${1} - bucket name
     # ${2} - COS path
     # ${3} - target path
-    coscli -e "${VAR_COS_ENDPOINT}" cp -r "cos://${1}/packages/${2}" "${3}"
+
+    # --part-size indicates the file chunk size.
+    # when the file is larger than --part-size, coscli will chunk the file by --part-size.
+    # when uploading/downloading the file in chunks, it will enable breakpoint transfer by default,
+    # which will generate cosresumabletask file and interfere with the file integrity.
+    # ref: https://cloud.tencent.com/document/product/436/63669
+    coscli -e "${VAR_COS_ENDPOINT}" cp -r --part-size 1000 "cos://${1}/packages/${2}" "${3}"
 }
 
 func_repo_backup() {
     # ${1} - bucket name
     # ${2} - COS path
     # ${3} - backup tag
-    coscli -e "${VAR_COS_ENDPOINT}" cp -r "cos://${1}/packages/${2}" "cos://${1}/packages/backup/${2}_${3}"
+    coscli -e "${VAR_COS_ENDPOINT}" cp -r --part-size 1000 "cos://${1}/packages/${2}" "cos://${1}/packages/backup/${2}_${3}"
 }
 
 func_repo_backup_remove() {
@@ -92,7 +99,7 @@ func_repo_backup_remove() {
 
 func_repo_repodata_rebuild() {
     # ${1} - repo parent path
-    find "${1}" -type d -name "x86_64" \
+    find "${1}" -type d -name "${ARCH}" \
         -exec echo "createrepo for: {}" \; \
         -exec rm -rf {}/repodata \; \
         -exec createrepo {} \;
@@ -109,16 +116,16 @@ func_repo_upload() {
     # ${1} - local path
     # ${2} - bucket name
     # ${3} - COS path
-    coscli -e "${VAR_COS_ENDPOINT}" rm -r -f "cos://${2}/packages/${3}"
-    coscli -e "${VAR_COS_ENDPOINT}" cp -r "${1}" "cos://${2}/packages/${3}"
+    coscli -e "${VAR_COS_ENDPOINT}" rm -r -f "cos://${2}/packages/${3}" || true
+    coscli -e "${VAR_COS_ENDPOINT}" cp -r --part-size 1000 "${1}" "cos://${2}/packages/${3}"
 }
 
 func_repo_publish() {
     # ${1} - CI bucket
     # ${2} - repo publish bucket
     # ${3} - COS path
-    coscli -e "${VAR_COS_ENDPOINT}" rm -r -f "cos://${2}/packages/${3}"
-    coscli -e "${VAR_COS_ENDPOINT}" cp -r "cos://${1}/packages/${3}" "cos://${2}/packages"
+    coscli -e "${VAR_COS_ENDPOINT}" rm -r -f "cos://${2}/packages/${3}" || true
+    coscli -e "${VAR_COS_ENDPOINT}" cp -r --part-size 1000 "cos://${1}/packages/${3}" "cos://${2}/packages/${3}"
 }
 
 # =======================================
@@ -145,9 +152,9 @@ repo_clone)
 repo_package_sync)
     VAR_REPO_MAJOR_VER=(7 8)
     for i in "${VAR_REPO_MAJOR_VER[@]}"; do
-        find "${VAR_RPM_WORKBENCH_DIR}" -type f -name "*el${i}.x86_64.rpm" \
+        find "${VAR_RPM_WORKBENCH_DIR}" -type f -name "*el${i}.${ARCH}.rpm" \
             -exec echo "repo sync for: {}" \; \
-            -exec cp -a {} /tmp/centos/"${i}"/x86_64 \;
+            -exec cp -a {} /tmp/centos/"${i}"/${ARCH} \;
     done
     ;;
 repo_repodata_rebuild)

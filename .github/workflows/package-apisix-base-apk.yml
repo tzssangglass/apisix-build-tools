@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      BUILD_APISIX_BASE_VERSION: 1.19.3.2.0
+      BUILD_APISIX_BASE_VERSION: 1.21.4.1.2
     steps:
       - uses: actions/checkout@v2
 
@@ -27,7 +27,7 @@ jobs:
 
       - name: build apisix-base apk
         run: |
-          make package version=${BUILD_APISIX_BASE_VERSION} image_base=alpine image_tag=3.12 app=apisix-base type=apk
+          make package version=${BUILD_APISIX_BASE_VERSION} image_base=alpine image_tag=3.15 app=apisix-base type=apk
 
       - name: Run apisix-base image
         run: |

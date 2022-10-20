@@ -10,15 +10,17 @@ if ([ $# -gt 0 ] && [ "$1" == "latest" ]) || [ "$version" == "latest" ]; then
     apisix_nginx_module_ver="main"
     wasm_nginx_module_ver="main"
     lua_var_nginx_module_ver="master"
+    grpc_client_nginx_module_ver="main"
     debug_args="--with-debug"
     OR_PREFIX=${OR_PREFIX:="/usr/local/openresty-debug"}
     add_shared_shdict_module="--add-module=../apisix-nginx-module/src/meta"
 else
-    ngx_multi_upstream_module_ver="1.1.0"
+    ngx_multi_upstream_module_ver="1.1.1"
     mod_dubbo_ver="1.0.2"
-    apisix_nginx_module_ver="1.9.0"
-    wasm_nginx_module_ver="0.6.1"
-    lua_var_nginx_module_ver="v0.5.2"
+    apisix_nginx_module_ver="1.10.0"
+    wasm_nginx_module_ver="0.6.3"
+    lua_var_nginx_module_ver="v0.5.3"
+    grpc_client_nginx_module_ver="v0.2.2"
     debug_args=${debug_args:-}
     OR_PREFIX=${OR_PREFIX:="/usr/local/openresty"}
     add_shared_shdict_module${add_shared_shdict_module:-}
@@ -73,6 +75,14 @@ else
         lua-var-nginx-module-${lua_var_nginx_module_ver}
 fi
 
+if [ "$repo" == grpc-client-nginx-module ]; then
+    cp -r "$prev_workdir" ./grpc-client-nginx-module-${grpc_client_nginx_module_ver}
+else
+    git clone --depth=1 -b $grpc_client_nginx_module_ver \
+        https://github.com/api7/grpc-client-nginx-module \
+        grpc-client-nginx-module-${grpc_client_nginx_module_ver}
+fi
+
 cd ngx_multi_upstream_module-${ngx_multi_upstream_module_ver} || exit 1
 ./patch.sh ../openresty-${or_ver}
 cd ..
@@ -89,10 +99,13 @@ cc_opt=${cc_opt:-}
 ld_opt=${ld_opt:-}
 luajit_xcflags=${luajit_xcflags:="-DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT"}
 no_pool_patch=${no_pool_patch:-}
+# TODO: remove old NGX_HTTP_GRPC_CLI_ENGINE_PATH once we have released a new
+# version of grpc-client-nginx-module
+grpc_engine_path="-DNGX_GRPC_CLI_ENGINE_PATH=$OR_PREFIX/libgrpc_engine.so -DNGX_HTTP_GRPC_CLI_ENGINE_PATH=$OR_PREFIX/libgrpc_engine.so"
 
 cd openresty-${or_ver} || exit 1
 ./configure --prefix="$OR_PREFIX" \
-    --with-cc-opt="-DAPISIX_BASE_VER=$version $cc_opt" \
+    --with-cc-opt="-DAPISIX_BASE_VER=$version $grpc_engine_path $cc_opt" \
     --with-ld-opt="-Wl,-rpath,$OR_PREFIX/wasmtime-c-api/lib $ld_opt" \
     $debug_args \
     --add-module=../mod_dubbo-${mod_dubbo_ver} \
@@ -102,6 +115,7 @@ cd openresty-${or_ver} || exit 1
     --add-module=../apisix-nginx-module-${apisix_nginx_module_ver}/src/meta \
     --add-module=../wasm-nginx-module-${wasm_nginx_module_ver} \
     --add-module=../lua-var-nginx-module-${lua_var_nginx_module_ver} \
+    --add-module=../grpc-client-nginx-module-${grpc_client_nginx_module_ver} \
     --with-poll_module \
     --with-pcre-jit \
     --without-http_rds_json_module \
@@ -141,5 +155,9 @@ sudo OPENRESTY_PREFIX="$OR_PREFIX" make install
 cd ..
 
 cd wasm-nginx-module-${wasm_nginx_module_ver} || exit 1
+sudo OPENRESTY_PREFIX="$OR_PREFIX" make install
+cd ..
+
+cd grpc-client-nginx-module-${grpc_client_nginx_module_ver} || exit 1
 sudo OPENRESTY_PREFIX="$OR_PREFIX" make install
 cd ..
