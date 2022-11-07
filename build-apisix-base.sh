@@ -145,17 +145,17 @@ cd openresty-${or_ver} || exit 1
     -j`nproc`
 
 make -j`nproc`
-sudo make install
+make install
 cd ..
 
 cd apisix-nginx-module-${apisix_nginx_module_ver} || exit 1
-sudo OPENRESTY_PREFIX="$OR_PREFIX" make install
+OPENRESTY_PREFIX="$OR_PREFIX" make install
 cd ..
 
 cd wasm-nginx-module-${wasm_nginx_module_ver} || exit 1
-sudo OPENRESTY_PREFIX="$OR_PREFIX" make install
+OPENRESTY_PREFIX="$OR_PREFIX" make install
 cd ..
 
 cd grpc-client-nginx-module-${grpc_client_nginx_module_ver} || exit 1
-sudo OPENRESTY_PREFIX="$OR_PREFIX" make install
+OPENRESTY_PREFIX="$OR_PREFIX" make install
 cd ..
