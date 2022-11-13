@@ -16,14 +16,16 @@ if [ ! -f $PWD/openresty-${or_ver}.tar.gz ]; then
     wget --no-check-certificate https://openresty.org/download/openresty-${or_ver}.tar.gz
 fi
 
-rm -rf /tmp/openresty-${or_ver}
-tar -zxvpf openresty-${or_ver}.tar.gz -C /tmp
+rm -rf /opt/openresty-${or_ver}
+tar -zxvpf openresty-${or_ver}.tar.gz -C /opt
+mv /opt/openresty-${or_ver} /opt/openresty-develop
 
-cd /tmp/openresty-${or_ver}
+cd /opt/openresty-develop
 ./configure --prefix="$OR_PREFIX" \
     --with-cc-opt="-DOPENRESTY_VER=openresty-develop $cc_opt" \
     --with-ld-opt="-Wl,-rpath, $ld_opt" \
     --with-debug \
+    --add-module=/usr/local/nginx/src/lua-resty-events \
     --with-poll_module \
     --with-pcre-jit \
     --without-http_rds_json_module \
@@ -45,5 +47,3 @@ cd /tmp/openresty-${or_ver}
 
 make -j16
 make install
-
-rm -rf /tmp/openresty-${or_ver}
